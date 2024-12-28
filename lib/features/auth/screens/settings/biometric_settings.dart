@@ -41,13 +41,13 @@ class _BiometricSettingsState extends ConsumerState<BiometricSettings> {
 
     try {
       if (value) {
-        // Enable biometric
+        final credentials =
+            await ref.read(authServiceProvider).getCurrentCredentials();
         await ref.read(authStateProvider.notifier).enableBiometric(
-              email: 'current_user_email', // Get from current user
-              password: 'current_password', // Get from secure storage
+              email: credentials['email']!,
+              password: credentials['password']!,
             );
       } else {
-        // Disable biometric
         await ref.read(authStateProvider.notifier).disableBiometric();
       }
 
@@ -73,11 +73,19 @@ class _BiometricSettingsState extends ConsumerState<BiometricSettings> {
       );
     }
 
-    return SwitchListTile(
-      title: const Text('Enable Biometric Login'),
-      subtitle: const Text('Use fingerprint or face ID to log in'),
-      value: _isBiometricEnabled,
-      onChanged: _toggleBiometric,
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
+          children: [
+            SwitchListTile(
+              title: const Text('Enable Biometric Login'),
+              subtitle: const Text('Use fingerprint or face ID to log in'),
+              value: _isBiometricEnabled,
+              onChanged: _toggleBiometric,
+            )
+          ],
+        ),
+      ),
     );
   }
 }

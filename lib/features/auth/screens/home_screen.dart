@@ -19,6 +19,10 @@ class HomeScreen extends ConsumerWidget {
               Navigator.of(context).pushReplacementNamed('/login');
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () => Navigator.pushNamed(context, '/settings'),
+          ),
         ],
       ),
       body: const Center(

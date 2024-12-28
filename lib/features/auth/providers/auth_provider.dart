@@ -70,20 +70,27 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
   }
 
   Future<bool> attemptBiometricLogin() async {
-    if (!await _biometricService.isBiometricEnabled()) {
-      return false;
-    }
-
-    state = const AuthState.loading();
-
     try {
+      final isEnabled = await _biometricService.isBiometricEnabled();
+      print('Biometric enabled: $isEnabled'); // Debug log
+
+      if (!isEnabled) {
+        return false;
+      }
+
+      state = const AuthState.loading();
+
       final authenticated = await _biometricService.authenticate();
+      print('Biometric authenticated: $authenticated'); // Debug log
+
       if (!authenticated) {
         state = const AuthState.unauthenticated();
         return false;
       }
 
       final credentials = await _biometricService.getBiometricCredentials();
+      print('Got credentials: ${credentials.toString()}'); // Debug log
+
       if (credentials['email'] == null || credentials['password'] == null) {
         state = const AuthState.unauthenticated();
         return false;
@@ -97,6 +104,7 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
       state = const AuthState.authenticated();
       return true;
     } catch (e) {
+      print('Biometric error: $e'); // Debug log
       state = AuthState.error(e.toString());
       return false;
     }
@@ -130,3 +138,5 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     await _biometricService.removeBiometricCredentials();
   }
 }
+
+final biometricAvailableProvider = Provider<bool>((ref) => false);

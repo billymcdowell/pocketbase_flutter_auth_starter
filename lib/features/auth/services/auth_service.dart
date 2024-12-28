@@ -1,8 +1,10 @@
 // auth_service.dart
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:pocketbase/pocketbase.dart';
 
 class AuthService {
   final PocketBase pb;
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   AuthService() : pb = PocketBase('https://warn-statement.pockethost.io/');
 
@@ -23,15 +25,12 @@ class AuthService {
     }
   }
 
-  Future<void> signIn({
-    required String email,
-    required String password,
-  }) async {
+  Future<void> signIn({required String email, required String password}) async {
     try {
-      await pb.collection('users').authWithPassword(
-            email,
-            password,
-          );
+      await pb.collection('users').authWithPassword(email, password);
+      print('Storing credentials for: $email'); // Debug log
+      await _secureStorage.write(key: 'user_email', value: email);
+      await _secureStorage.write(key: 'user_password', value: password);
     } catch (e) {
       throw _handlePocketBaseError(e);
     }
@@ -47,6 +46,12 @@ class AuthService {
 
   Future<void> signOut() async {
     pb.authStore.clear();
+  }
+
+  Future<Map<String, String?>> getCurrentCredentials() async {
+    final email = await _secureStorage.read(key: 'user_email');
+    final password = await _secureStorage.read(key: 'user_password');
+    return {'email': email, 'password': password};
   }
 
   bool get isAuthenticated => pb.authStore.isValid;
