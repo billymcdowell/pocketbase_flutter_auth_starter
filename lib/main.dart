@@ -1,32 +1,48 @@
+// main.dart
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'providers/auth_provider.dart';
-import 'services/pocketbase_service.dart';
-import 'src/app.dart';
-import 'src/settings/settings_controller.dart';
-import 'src/settings/settings_service.dart';
+import 'package:flutter_auth_template/features/auth/providers/auth_provider.dart';
+import 'package:flutter_auth_template/features/auth/screens/home_screen.dart';
+import 'package:flutter_auth_template/features/auth/screens/login_screen.dart';
+import 'package:flutter_auth_template/features/auth/screens/reset_password_screen.dart';
+import 'package:flutter_auth_template/features/auth/screens/settings/biometric_settings.dart';
+import 'package:flutter_auth_template/features/auth/screens/signup_screen.dart';
+import 'package:flutter_auth_template/features/auth/widgets/biometric_prompt.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-void main() async {
-  // Set up the SettingsController, which will glue user settings to multiple
-  // Flutter Widgets.
-  final settingsController = SettingsController(SettingsService());
-
-  // Load the user's preferred theme while the splash screen is displayed.
-  // This prevents a sudden theme change when the app is first displayed.
-  await settingsController.loadSettings();
-
-  WidgetsFlutterBinding.ensureInitialized();
-  await PocketBaseService().initialize();
-
-  // Run the app and pass in the SettingsController. The app listens to the
-  // SettingsController for changes, then passes it further down to the
-  // SettingsView.
+void main() {
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-      ],
-      child: MyApp(settingsController: settingsController),
+    const ProviderScope(
+      child: MyApp(),
     ),
   );
+}
+
+class MyApp extends ConsumerWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authStateProvider);
+
+    return MaterialApp(
+      title: 'Auth Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        useMaterial3: true,
+      ),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => authState.maybeWhen(
+              authenticated: () => const HomeScreen(),
+              orElse: () =>
+                  const BiometricPrompt(), // Show biometric prompt first
+            ),
+        '/login': (context) => const LoginScreen(),
+        '/settings': (context) => const BiometricSettings(),
+        '/signup': (context) => const SignUpScreen(),
+        '/reset-password': (context) => const ResetPasswordScreen(),
+        '/home': (context) => const HomeScreen(),
+      },
+    );
+  }
 }
