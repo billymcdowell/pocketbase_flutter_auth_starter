@@ -6,7 +6,7 @@ class AuthService {
   final PocketBase pb;
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
-  AuthService() : pb = PocketBase('https://warn-statement.pockethost.io/');
+  AuthService() : pb = PocketBase('YOUR_POCKETBASE_URL');
 
   Future<void> signUp({
     required String email,
